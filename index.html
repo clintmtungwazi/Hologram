@@ -12,6 +12,20 @@
         }
         input { padding: 12px; border-radius: 8px; border: 2px solid #00ff88; background: rgba(0,0,0,0.8); color: white; width: 200px; }
         button { padding: 12px 24px; background: #00ff88; border: none; border-radius: 8px; font-weight: bold; color: black; cursor: pointer; }
+   #ui-layer {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    z-index: 10;
+    pointer-events: none; 
+}
+
+#ui-layer input, #ui-layer button {
+    pointer-events: auto; 
+}
+
     </style>
 </head>
 <body>
