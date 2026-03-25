@@ -1,14 +1,13 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clint Hologram AR</title>
+    <title>Clint AR Hologram - Final</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #000; }
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: sans-serif; }
 
-        /* UI Layer - This centers everything and lets touches pass through */
+        /* UI Layer: Centered and touch-transparent */
         #ui-layer {
             position: absolute;
             bottom: 30px;
@@ -17,28 +16,43 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px;
-            z-index: 10;
-            pointer-events: none; /* Container is "invisible" to touch */
+            gap: 12px;
+            z-index: 999;
+            pointer-events: none;
         }
 
-        /* Input and Button - These are clickable and neat */
+        /* Status Display at the top */
+        #status-display {
+            background: rgba(0, 0, 0, 0.8);
+            color: #00fff2;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+            border: 1px solid #00fff2;
+            pointer-events: none;
+            margin-bottom: 5px;
+        }
+
+        /* Interactive Elements */
         #ui-layer input, #ui-layer button {
-            pointer-events: auto; /* Makes them solid to touch */
-            padding: 12px;
-            border-radius: 8px;
+            pointer-events: auto; /* Makes them clickable */
+            padding: 14px;
+            border-radius: 10px;
             border: 2px solid #00fff2;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(15, 15, 15, 0.9);
             color: white;
-            font-family: sans-serif;
-            width: 250px;
+            width: 280px;
+            max-width: 85%;
             text-align: center;
+            font-size: 16px;
             outline: none;
         }
 
-        #ui-layer button {
-            cursor: pointer;
+        #send-btn {
+            background: #00fff2 !important;
+            color: #000 !important;
             font-weight: bold;
+            cursor: pointer;
             text-transform: uppercase;
         }
     </style>
@@ -46,7 +60,8 @@
 <body>
 
     <div id="ui-layer">
-        <input type="text" id="user-input" placeholder="Type 'clint1' or 'clint2'">
+        <div id="status-display">System: Ready. Tap "Start AR"</div>
+        <input type="text" id="user-input" placeholder="Enter 'clint1' or 'clint2'">
         <button id="send-btn">Switch Character</button>
     </div>
 
@@ -55,7 +70,8 @@
         import { ARButton } from 'https://unpkg.com/three@0.128.0/examples/jsm/webxr/ARButton.js';
 
         let scene, camera, renderer, clintMesh;
-        let loader = new THREE.TextureLoader();
+        const loader = new THREE.TextureLoader();
+        const statusEl = document.getElementById('status-display');
 
         init();
 
@@ -63,41 +79,60 @@
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
 
-            // RENDERER SETUP - alpha: true is key for seeing the camera!
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            // CRITICAL: alpha:true and preserveDrawingBuffer for AR stability
+            renderer = new THREE.WebGLRenderer({ 
+                antialias: true, 
+                alpha: true,
+                preserveDrawingBuffer: true 
+            });
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.xr.enabled = true;
             document.body.appendChild(renderer.domElement);
 
-            // AR BUTTON
-            document.body.appendChild(ARButton.createButton(renderer, { requiredFeatures: ['hit-test'] }));
+            // AR Button Setup
+            const arBtn = ARButton.createButton(renderer, { 
+                requiredFeatures: ['hit-test'],
+                optionalFeatures: ['dom-overlay'],
+                domOverlay: { root: document.getElementById('ui-layer') }
+            });
+            document.body.appendChild(arBtn);
 
-            // HOLOGRAM SETUP
-            const geometry = new THREE.PlaneGeometry(0.5, 0.7);
-            const shaderMaterial = new THREE.MeshBasicMaterial({
+            // The Hologram Plane
+            const geometry = new THREE.PlaneGeometry(0.6, 0.9);
+            const material = new THREE.MeshBasicMaterial({
                 map: loader.load('clint1-founder-3.png'),
                 transparent: true,
                 side: THREE.DoubleSide
             });
 
-            clintMesh = new THREE.Mesh(geometry, shaderMaterial);
-            clintMesh.position.set(0, 0, -1); // Starts 1 meter in front
-            clintMesh.visible = false; // Hidden until AR starts
+            clintMesh = new THREE.Mesh(geometry, material);
+            clintMesh.position.set(0, 0, -1.2); // 1.2 meters away
+            clintMesh.visible = false;
             scene.add(clintMesh);
 
-            // INTERACTION LOGIC
+            // Lighting (Just in case)
+            scene.add(new THREE.AmbientLight(0xffffff, 1));
+
+            // Logic for the Switch Button
             const btn = document.getElementById('send-btn');
             const input = document.getElementById('user-input');
 
             btn.onclick = () => {
-                const val = input.value.toLowerCase();
+                const val = input.value.toLowerCase().trim();
+                statusEl.innerText = "Processing: " + val;
+                
                 if (val.includes('clint1')) {
                     clintMesh.material.map = loader.load('clint1-founder-3.png');
+                    clintMesh.visible = true;
+                    statusEl.innerText = "Showing: Clint 1";
                 } else if (val.includes('clint2')) {
                     clintMesh.material.map = loader.load('clint2-founder-3.png');
+                    clintMesh.visible = true;
+                    statusEl.innerText = "Showing: Clint 2";
+                } else {
+                    statusEl.innerText = "Error: Use 'clint1' or 'clint2'";
                 }
-                clintMesh.visible = true;
             };
 
             renderer.setAnimationLoop(render);
@@ -105,7 +140,15 @@
 
         function render(timestamp, frame) {
             if (frame) {
-                // Logic for tracking surfaces can go here later
+                const session = renderer.xr.getSession();
+                if (session) {
+                    // Update status based on AR state
+                    if (clintMesh.visible) {
+                        statusEl.innerText = "Status: Hologram Active";
+                    } else {
+                        statusEl.innerText = "Status: AR Live. Tap Switch to show.";
+                    }
+                }
             }
             renderer.render(scene, camera);
         }
