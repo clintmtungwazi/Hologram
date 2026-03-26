@@ -150,23 +150,30 @@
                 );
             };
 
-            btn.onclick = () => {
+
+
+              btn.onclick = () => {
                 const val = input.value.toLowerCase().trim();
                 let filesToTry = [];
                 
                 if (val.includes('clint1')) {
-                    filesToTry = ['clint1-founder-3.png', 'clint1.png'];
+                    filesToTry = ['clint1-founder-3.png'];
                 } else if (val.includes('clint2')) {
-                    // Tries multiple common names just in case
+                    // This matches your actual filename on GitHub!
                     filesToTry = [
-                        'clint2-founder-3.png', 
-                        'Clint2-founder-3.png', 
-                        'clint2-founder-3.PNG', 
-                        'clint2.png'
+                        'Clint2-engineer-3.png', 
+                        'clint2-engineer-3.png'
                     ];
                 }
 
                 if (filesToTry.length > 0) {
+                    tryLoad(filesToTry, 0);
+                } else {
+                    statusEl.innerText = "Enter 'clint1' or 'clint2'";
+                    statusEl.style.color = "#ffcc00";
+                }
+            };
+              if (filesToTry.length > 0) {
                     tryLoad(filesToTry, 0);
                 } else {
                     statusEl.innerText = "Enter 'clint1' or 'clint2'";
