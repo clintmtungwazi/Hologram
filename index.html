@@ -3,83 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clint AR Hologram - Official</title>
+    <title>Clint AR Hologram - Final Master</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #000; font-family: sans-serif; }
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
-        /* Moves Google's "Start AR" button to the top so it's easy to click */
+        /* MOVES GOOGLE BUTTON TO TOP - SO YOU CAN ACTUALLY CLICK IT */
         #ARButton {
-            top: 20px !important;
+            top: 30px !important;
             bottom: auto !important;
-            background: rgba(0, 255, 242, 0.3) !important;
+            background: rgba(0, 255, 242, 0.4) !important;
             border: 2px solid #00fff2 !important;
-            box-shadow: 0 0 10px #00fff2;
+            box-shadow: 0 0 20px #00fff2;
+            font-weight: bold !important;
         }
 
         #ui-layer {
             position: absolute;
-            top: 0;
+            bottom: 40px;
             left: 0;
             width: 100%;
-            height: 100%;
             display: flex;
             flex-direction: column;
-            justify-content: flex-end; /* Keeps controls at the bottom */
             align-items: center;
-            padding-bottom: 40px;
-            z-index: 999;
+            gap: 15px;
+            z-index: 1000;
             pointer-events: none;
         }
 
         #status-display {
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
             color: #00fff2;
-            padding: 10px 20px;
-            border-radius: 20px;
+            padding: 12px 25px;
+            border-radius: 30px;
             font-size: 14px;
             border: 1px solid #00fff2;
-            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             pointer-events: none;
         }
 
-        .controls {
+        .input-group {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            width: 100%;
+            gap: 10px;
+            pointer-events: auto;
+            width: 85%;
+            max-width: 320px;
         }
 
-        #ui-layer input, #ui-layer button {
-            pointer-events: auto; /* Makes them clickable */
-            padding: 15px;
-            border-radius: 12px;
+        input {
+            padding: 16px;
+            border-radius: 15px;
             border: 2px solid #00fff2;
-            background: rgba(10, 10, 10, 0.9);
+            background: rgba(15, 15, 15, 0.95);
             color: white;
-            width: 280px;
-            max-width: 85%;
-            text-align: center;
             font-size: 16px;
+            text-align: center;
             outline: none;
         }
 
         #send-btn {
-            background: #00fff2 !important;
-            color: #000 !important;
-            font-weight: bold;
+            padding: 16px;
+            border-radius: 15px;
+            border: none;
+            background: #00fff2;
+            color: #000;
+            font-weight: 900;
+            font-size: 16px;
             cursor: pointer;
+            text-transform: uppercase;
         }
     </style>
 </head>
 <body>
 
     <div id="ui-layer">
-        <div id="status-display">System: Ready. Tap "START AR" at the top</div>
+        <div id="status-display">System: Tap "START AR" at the top</div>
         
-        <div class="controls">
-            <input type="text" id="user-input" placeholder="Type 'clint1' or 'clint2'">
-            <button id="send-btn">Switch Character</button>
+        <div class="input-group">
+            <input type="text" id="user-input" placeholder="Enter 'clint1' or 'clint2'">
+            <button id="send-btn">Switch Hologram</button>
         </div>
     </div>
 
@@ -103,14 +106,14 @@
             renderer.xr.enabled = true;
             document.body.appendChild(renderer.domElement);
 
-            // Add the AR Button with Overlay
+            // Create AR Button
             document.body.appendChild(ARButton.createButton(renderer, { 
                 requiredFeatures: ['hit-test'],
                 optionalFeatures: ['dom-overlay'],
                 domOverlay: { root: document.getElementById('ui-layer') }
             }));
 
-            // Create the Hologram Surface
+            // Plane Geometry for the Character
             const geometry = new THREE.PlaneGeometry(0.8, 1.2);
             const material = new THREE.MeshBasicMaterial({
                 map: loader.load('clint1-founder-3.png'),
@@ -119,72 +122,65 @@
             });
 
             clintMesh = new THREE.Mesh(geometry, material);
-            clintMesh.position.set(0, 0, -1.5); // Starts 1.5m away
+            clintMesh.position.set(0, 0, -1.2); // 1.2 meters away
             clintMesh.visible = false;
             scene.add(clintMesh);
 
-            // Bright light so the image looks clear
             scene.add(new THREE.AmbientLight(0xffffff, 1.5));
 
             const btn = document.getElementById('send-btn');
             const input = document.getElementById('user-input');
 
-            // This function tries different filenames if one fails
+            // SMART LOADER: Tries different names to ensure it finds your file
             const tryLoad = (names, index) => {
                 if (index >= names.length) {
-                    statusEl.innerText = "Error: Clint2 image not found on GitHub!";
+                    statusEl.innerText = "Error: File Not Found!";
                     statusEl.style.color = "#ff4444";
                     return;
                 }
 
-                statusEl.innerText = "Loading: " + names[index] + "...";
+                statusEl.innerText = "Connecting: " + names[index];
                 loader.load(names[index], 
                     (tex) => {
                         clintMesh.material.map = tex;
                         clintMesh.visible = true;
-                        statusEl.innerText = "Success! Showing: " + names[index];
+                        statusEl.innerText = "Hologram Active: " + names[index];
                         statusEl.style.color = "#00ff00";
                     },
                     undefined,
-                    () => tryLoad(names, index + 1) // Try the next name variant
+                    () => tryLoad(names, index + 1)
                 );
             };
-        
+
             btn.onclick = () => {
                 const val = input.value.toLowerCase().trim();
-                let filesToTry = [];
-                
-                statusEl.innerText = "Searching for " + val + "...";
-                
+                let searchList = [];
+
                 if (val.includes('clint1')) {
-                    filesToTry = ['clint1-founder-3.png'];
+                    searchList = ['clint1-founder-3.png', 'clint1.png'];
                 } else if (val.includes('clint2')) {
-                    // This matches your 'engineer' filename perfectly
-                    filesToTry = ['Clint2-engineer-3.png', 'clint2-engineer-3.png'];
+                    // EXACT MATCH for your "engineer" filename
+                    searchList = [
+                        'Clint2-engineer-3.png', 
+                        'clint2-engineer-3.png', 
+                        'clint2-engineer-3.PNG'
+                    ];
                 }
 
-                if (filesToTry.length > 0) {
-                    tryLoad(filesToTry, 0);
+                if (searchList.length > 0) {
+                    tryLoad(searchList, 0);
                 } else {
-                    statusEl.innerText = "Type 'clint1' or 'clint2'";
-                }
-            };
-
-                if (filesToTry.length > 0) {
-                    tryLoad(filesToTry, 0);
-                } else {
-                    statusEl.innerText = "Enter 'clint1' or 'clint2'";
-                    statusEl.style.color = "#ffcc00";
-                }
-            };
-              if (filesToTry.length > 0) {
-                    tryLoad(filesToTry, 0);
-                } else {
-                    statusEl.innerText = "Enter 'clint1' or 'clint2'";
+                    statusEl.innerText = "Use 'clint1' or 'clint2'";
                 }
             };
 
             renderer.setAnimationLoop(() => {
+                if (renderer.xr.isPresenting) {
+                   // Only show instructions once AR starts
+                   if (statusEl.innerText.includes("START AR")) {
+                       statusEl.innerText = "AR LIVE: Move phone to scan room";
+                   }
+                }
                 renderer.render(scene, camera);
             });
         }
@@ -197,3 +193,4 @@
     </script>
 </body>
 </html>
+
