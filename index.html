@@ -149,22 +149,26 @@
                     () => tryLoad(names, index + 1) // Try the next name variant
                 );
             };
-
-
-
-              btn.onclick = () => {
+        
+            btn.onclick = () => {
                 const val = input.value.toLowerCase().trim();
                 let filesToTry = [];
+                
+                statusEl.innerText = "Searching for " + val + "...";
                 
                 if (val.includes('clint1')) {
                     filesToTry = ['clint1-founder-3.png'];
                 } else if (val.includes('clint2')) {
-                    // This matches your actual filename on GitHub!
-                    filesToTry = [
-                        'Clint2-engineer-3.png', 
-                        'clint2-engineer-3.png'
-                    ];
+                    // This matches your 'engineer' filename perfectly
+                    filesToTry = ['Clint2-engineer-3.png', 'clint2-engineer-3.png'];
                 }
+
+                if (filesToTry.length > 0) {
+                    tryLoad(filesToTry, 0);
+                } else {
+                    statusEl.innerText = "Type 'clint1' or 'clint2'";
+                }
+            };
 
                 if (filesToTry.length > 0) {
                     tryLoad(filesToTry, 0);
