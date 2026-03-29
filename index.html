@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clint AI Hologram - Twins Edition</title>
+    <title>Clint AI Hologram - Twins</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #000; font-family: sans-serif; }
         #ARButton {
@@ -61,9 +60,9 @@
 <body>
 
     <div id="ui-layer">
-        <div id="status-display">Waking up the Twins...</div>
+        <div id="status-display">System Initializing...</div>
         <div class="input-group">
-            <input type="text" id="user-input" placeholder="Talk to the Twins...">
+            <input type="text" id="user-input" placeholder="Call Clint 1 or 2...">
             <button id="send-btn">SEND</button>
         </div>
     </div>
@@ -79,8 +78,13 @@
         const input = document.getElementById('user-input');
         const btn = document.getElementById('send-btn');
 
-        // PRE-LOAD VOICES (Crucial for mobile to avoid female default)
-        window.speechSynthesis.getVoices();
+        // PRE-LOAD VOICES
+        let voices = [];
+        const loadVoices = () => {
+            voices = window.speechSynthesis.getVoices();
+        };
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+        loadVoices();
 
         init();
 
@@ -102,7 +106,7 @@
 
             const geometry = new THREE.PlaneGeometry(0.8, 1.3);
             const material = new THREE.MeshBasicMaterial({
-                map: loader.load('clint1-founder-3.png/Clint1-founder-3png_260329_122816.jpg'),
+                map: loader.load('clint1-founder-3.png'),
                 transparent: true,
                 side: THREE.DoubleSide
             });
@@ -111,7 +115,7 @@
             clintMesh.position.set(0, 0, -1.2);
             scene.add(clintMesh);
 
-            scene.add(new THREE.AmbientLight(0xffffff, 1.5));
+            scene.add(new THREE.AmbientLight(0xffffff, 2.0));
 
             btn.onclick = () => {
                 const val = input.value.trim();
@@ -125,35 +129,24 @@
                 renderer.render(scene, camera);
             });
 
-            statusEl.innerText = "Twins Ready - Type 'Clint 1' or 'Clint 2'";
+            statusEl.innerText = "Twins Ready - Call Clint 1 or 2";
         }
 
-        function tryLoad(names, index) {
-            if (index >= names.length) return;
-            loader.load(names[index], (tex) => {
+        function tryLoad(path) {
+            statusEl.innerText = "Switching Hologram...";
+            loader.load(path, (tex) => {
                 clintMesh.material.map = tex;
-                statusEl.innerText = "Hologram Switched";
-            }, undefined, () => tryLoad(names, index + 1));
-        }
-              function tryLoad(names, index) {
-            if (index >= names.length) {
-                statusEl.innerText = "Error: File Not Found!";
-                return;
-            }
-            statusEl.innerText = "Connecting...";
-            loader.load(names[index], (tex) => {
-                clintMesh.material.map = tex;
-                clintMesh.visible = true;
                 statusEl.innerText = "Hologram Active";
-            }, undefined, () => tryLoad(names, index + 1));
+            }, undefined, () => {
+                statusEl.innerText = "Error: File Not Found";
+            });
         }
 
         function hologramSpeak(text) {
             window.speechSynthesis.cancel(); 
             const utterance = new SpeechSynthesisUtterance(text);
-            const voices = window.speechSynthesis.getVoices();
-            
-            // Filter for English Male Voices
+            loadVoices(); 
+
             const maleVoices = voices.filter(v => 
                 v.lang.includes('en') && 
                 (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('david'))
@@ -175,12 +168,12 @@
             const msg = text.toLowerCase();
             if (msg.includes("clint 1") || msg.includes("founder")) {
                 activeCharacter = 'clint1';
-                tryLoad(['clint1-founder-3.png/Clint1-founder-3png_260329_122816.jpg'], 0);
+                tryLoad('clint1-founder-3.png');
                 hologramSpeak("Founder mode active. Standing by.");
             } 
             else if (msg.includes("clint 2") || msg.includes("engineer")) {
                 activeCharacter = 'clint2';
-                tryLoad(['clint2-engineer-3.png/clint2-engineer-3png_260329_122846.jpg'], 0);
+                tryLoad('clint2-engineer-3.png');
                 hologramSpeak("Yo! Engineer Clint here. Let's build.");
             } 
             else {
@@ -196,5 +189,4 @@
     </script>
 </body>
 </html>
-
 
