@@ -135,28 +135,35 @@
                 statusEl.innerText = "Hologram Switched";
             }, undefined, () => tryLoad(names, index + 1));
         }
+              function tryLoad(names, index) {
+            if (index >= names.length) {
+                statusEl.innerText = "Error: File Not Found!";
+                return;
+            }
+            statusEl.innerText = "Connecting...";
+            loader.load(names[index], (tex) => {
+                clintMesh.material.map = tex;
+                clintMesh.visible = true;
+                statusEl.innerText = "Hologram Active";
+            }, undefined, () => tryLoad(names, index + 1));
+        }
+
         function hologramSpeak(text) {
             window.speechSynthesis.cancel(); 
             const utterance = new SpeechSynthesisUtterance(text);
-            
-            // Re-fetch voices to ensure list isn't empty
             const voices = window.speechSynthesis.getVoices();
             
-            // Find ALL male voices available on your phone
+            // Filter for English Male Voices
             const maleVoices = voices.filter(v => 
                 v.lang.includes('en') && 
-                (v.name.toLowerCase().includes('male') || 
-                 v.name.toLowerCase().includes('david') || 
-                 v.name.toLowerCase().includes('google uk english male'))
+                (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('david'))
             );
 
             if (activeCharacter === 'clint1') {
-                // FOUNDER: Deep & Authoritative
                 utterance.voice = maleVoices[0] || voices[0];
                 utterance.pitch = 0.70; 
                 utterance.rate = 0.85;
             } else {
-                // ENGINEER: Higher & Energetic
                 utterance.voice = maleVoices[1] || maleVoices[0] || voices[0];
                 utterance.pitch = 1.30; 
                 utterance.rate = 1.05;
@@ -168,13 +175,11 @@
             const msg = text.toLowerCase();
             if (msg.includes("clint 1") || msg.includes("founder")) {
                 activeCharacter = 'clint1';
-                // FIXED PATH: Note the folder name before the slash
                 tryLoad(['clint1-founder-3.png/Clint1-founder-3png_260329_122816.jpg'], 0);
                 hologramSpeak("Founder mode active. Standing by.");
             } 
             else if (msg.includes("clint 2") || msg.includes("engineer")) {
                 activeCharacter = 'clint2';
-                // FIXED PATH: Note the folder name before the slash
                 tryLoad(['clint2-engineer-3.png/clint2-engineer-3png_260329_122846.jpg'], 0);
                 hologramSpeak("Yo! Engineer Clint here. Let's build.");
             } 
@@ -183,7 +188,13 @@
             }
         }
 
-            </script>
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
 </body>
 </html>
+
 
