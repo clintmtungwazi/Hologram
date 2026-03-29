@@ -33,34 +33,16 @@
             border: 1px solid #00fff2;
         }
         .input-group {
-            display: flex;
-            gap: 5px;
-            pointer-events: auto;
-            width: 90%;
-            max-width: 400px;
+            display: flex; gap: 5px; pointer-events: auto; width: 90%; max-width: 400px;
         }
-        input {
-            flex: 1;
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid #00fff2;
-            background: #111;
-            color: white;
-        }
-        button {
-            padding: 15px;
-            border-radius: 10px;
-            border: none;
-            background: #00fff2;
-            color: black;
-            font-weight: bold;
-        }
+        input { flex: 1; padding: 15px; border-radius: 10px; border: 1px solid #00fff2; background: #111; color: white; }
+        button { padding: 15px; border-radius: 10px; border: none; background: #00fff2; color: black; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="ui-layer">
-        <div id="status-display">System Initializing...</div>
+        <div id="status-display">System Ready</div>
         <div class="input-group">
             <input type="text" id="user-input" placeholder="Call Clint 1 or 2...">
             <button id="send-btn">SEND</button>
@@ -78,11 +60,8 @@
         const input = document.getElementById('user-input');
         const btn = document.getElementById('send-btn');
 
-        // PRE-LOAD VOICES
         let voices = [];
-        const loadVoices = () => {
-            voices = window.speechSynthesis.getVoices();
-        };
+        const loadVoices = () => { voices = window.speechSynthesis.getVoices(); };
         window.speechSynthesis.onvoiceschanged = loadVoices;
         loadVoices();
 
@@ -91,7 +70,6 @@
         function init() {
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
-
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -105,31 +83,23 @@
             }));
 
             const geometry = new THREE.PlaneGeometry(0.8, 1.3);
+            // Default load (Founder)
             const material = new THREE.MeshBasicMaterial({
-                map: loader.load('clint1-founder-3.png'),
-                transparent: true,
-                side: THREE.DoubleSide
+                map: loader.load('Clint1-founder-3png_260329_122816.jpg'),
+                transparent: true, side: THREE.DoubleSide
             });
 
             clintMesh = new THREE.Mesh(geometry, material);
             clintMesh.position.set(0, 0, -1.2);
             scene.add(clintMesh);
-
             scene.add(new THREE.AmbientLight(0xffffff, 2.0));
 
             btn.onclick = () => {
                 const val = input.value.trim();
-                if (val !== "") {
-                    processCommand(val);
-                    input.value = "";
-                }
+                if (val !== "") { processCommand(val); input.value = ""; }
             };
 
-            renderer.setAnimationLoop(() => {
-                renderer.render(scene, camera);
-            });
-
-            statusEl.innerText = "Twins Ready - Call Clint 1 or 2";
+            renderer.setAnimationLoop(() => { renderer.render(scene, camera); });
         }
 
         function tryLoad(path) {
@@ -137,29 +107,20 @@
             loader.load(path, (tex) => {
                 clintMesh.material.map = tex;
                 statusEl.innerText = "Hologram Active";
-            }, undefined, () => {
-                statusEl.innerText = "Error: File Not Found";
             });
         }
 
         function hologramSpeak(text) {
             window.speechSynthesis.cancel(); 
             const utterance = new SpeechSynthesisUtterance(text);
-            loadVoices(); 
-
-            const maleVoices = voices.filter(v => 
-                v.lang.includes('en') && 
-                (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('david'))
-            );
+            const maleVoices = voices.filter(v => v.lang.includes('en') && (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('david')));
 
             if (activeCharacter === 'clint1') {
                 utterance.voice = maleVoices[0] || voices[0];
-                utterance.pitch = 0.70; 
-                utterance.rate = 0.85;
+                utterance.pitch = 0.70; utterance.rate = 0.85;
             } else {
                 utterance.voice = maleVoices[1] || maleVoices[0] || voices[0];
-                utterance.pitch = 1.30; 
-                utterance.rate = 1.05;
+                utterance.pitch = 1.30; utterance.rate = 1.05;
             }
             window.speechSynthesis.speak(utterance);
         }
@@ -168,25 +129,16 @@
             const msg = text.toLowerCase();
             if (msg.includes("clint 1") || msg.includes("founder")) {
                 activeCharacter = 'clint1';
-                tryLoad('clint1-founder-3.png');
-                hologramSpeak("Founder mode active. Standing by.");
-            } 
-            else if (msg.includes("clint 2") || msg.includes("engineer")) {
+                tryLoad('Clint1-founder-3png_260329_122816.jpg');
+                hologramSpeak("Founder mode active.");
+            } else if (msg.includes("clint 2") || msg.includes("engineer")) {
                 activeCharacter = 'clint2';
-                tryLoad('clint2-engineer-3.png');
-                hologramSpeak("Yo! Engineer Clint here. Let's build.");
-            } 
-            else {
+                tryLoad('clint2-engineer-3png_260329_123257_2.jpg');
+                hologramSpeak("Yo! Engineer Clint here.");
+            } else {
                 hologramSpeak(text);
             }
         }
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
     </script>
 </body>
 </html>
-
