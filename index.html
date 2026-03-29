@@ -1,88 +1,70 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clint AR Hologram - Final Master</title>
+    <title>Clint AI Hologram</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-
-        /* MOVES GOOGLE BUTTON TO TOP - SO YOU CAN ACTUALLY CLICK IT */
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: sans-serif; }
         #ARButton {
-            top: 30px !important;
+            top: 20px !important;
             bottom: auto !important;
             background: rgba(0, 255, 242, 0.4) !important;
             border: 2px solid #00fff2 !important;
-            box-shadow: 0 0 20px #00fff2;
-            font-weight: bold !important;
         }
-
         #ui-layer {
             position: absolute;
-            bottom: 40px;
+            bottom: 30px;
             left: 0;
             width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
             z-index: 1000;
             pointer-events: none;
         }
-
         #status-display {
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, 0.8);
             color: #00fff2;
-            padding: 12px 25px;
-            border-radius: 30px;
+            padding: 10px 20px;
+            border-radius: 20px;
             font-size: 14px;
             border: 1px solid #00fff2;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            pointer-events: none;
         }
-
         .input-group {
             display: flex;
-            flex-direction: column;
-            gap: 10px;
+            gap: 5px;
             pointer-events: auto;
-            width: 85%;
-            max-width: 320px;
+            width: 90%;
+            max-width: 400px;
         }
-
         input {
-            padding: 16px;
-            border-radius: 15px;
-            border: 2px solid #00fff2;
-            background: rgba(15, 15, 15, 0.95);
+            flex: 1;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #00fff2;
+            background: #111;
             color: white;
-            font-size: 16px;
-            text-align: center;
-            outline: none;
         }
-
-        #send-btn {
-            padding: 16px;
-            border-radius: 15px;
+        button {
+            padding: 15px;
+            border-radius: 10px;
             border: none;
             background: #00fff2;
-            color: #000;
-            font-weight: 900;
-            font-size: 16px;
-            cursor: pointer;
-            text-transform: uppercase;
+            color: black;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
     <div id="ui-layer">
-        <div id="status-display">System: Tap "START AR" at the top</div>
-        
+        <div id="status-display">System Ready</div>
         <div class="input-group">
-            <input type="text" id="user-input" placeholder="Enter 'clint1' or 'clint2'">
-            <button id="send-btn">Switch Hologram</button>
+            <input type="text" id="user-input" placeholder="Talk to Clint...">
+            <button id="send-btn">SEND</button>
         </div>
     </div>
 
@@ -93,6 +75,8 @@
         let scene, camera, renderer, clintMesh;
         const loader = new THREE.TextureLoader();
         const statusEl = document.getElementById('status-display');
+        const input = document.getElementById('user-input');
+        const btn = document.getElementById('send-btn');
 
         init();
 
@@ -106,121 +90,110 @@
             renderer.xr.enabled = true;
             document.body.appendChild(renderer.domElement);
 
-            // Create AR Button
             document.body.appendChild(ARButton.createButton(renderer, { 
                 requiredFeatures: ['hit-test'],
                 optionalFeatures: ['dom-overlay'],
                 domOverlay: { root: document.getElementById('ui-layer') }
             }));
 
-            // Plane Geometry for the Character
-            const geometry = new THREE.PlaneGeometry(0.8, 1.2);
+            const geometry = new THREE.PlaneGeometry(0.8, 1.3);
+            // DEFAULT LOAD (Founder)
             const material = new THREE.MeshBasicMaterial({
-                map: loader.load('clint1-founder-3.png'),
+                map: loader.load('clint1-founder-3.png/Clint1-founder-3png_260329_122816.jpg'),
                 transparent: true,
                 side: THREE.DoubleSide
             });
 
             clintMesh = new THREE.Mesh(geometry, material);
-            clintMesh.position.set(0, 0, -1.2); // 1.2 meters away
-            clintMesh.visible = false;
+            clintMesh.position.set(0, 0, -1.2);
+            clintMesh.visible = true; 
             scene.add(clintMesh);
 
             scene.add(new THREE.AmbientLight(0xffffff, 1.5));
 
-            const btn = document.getElementById('send-btn');
-            const input = document.getElementById('user-input');
+            btn.onclick = () => {
+                const val = input.value.toLowerCase().trim();
+                let searchList = [];
 
-            // SMART LOADER: Tries different names to ensure it finds your file
-            const tryLoad = (names, index) => {
-                if (index >= names.length) {
-                    statusEl.innerText = "Error: File Not Found!";
-                    statusEl.style.color = "#ff4444";
-                    return;
+                if (val.includes('clint 1') || val.includes('founder')) {
+                    searchList = ['clint1-founder-3.png/Clint1-founder-3png_260329_122816.jpg'];
+                } else if (val.includes('clint 2') || val.includes('engineer')) {
+                    searchList = ['clint2-engineer-3.png/clint2-engineer-3png_260329_122846.jpg'];
                 }
 
-                statusEl.innerText = "Connecting: " + names[index];
-                loader.load(names[index], 
-                    (tex) => {
-                        clintMesh.material.map = tex;
-                        clintMesh.visible = true;
-                        statusEl.innerText = "Hologram Active: " + names[index];
-                        statusEl.style.color = "#00ff00";
-                    },
-                    undefined,
-                    () => tryLoad(names, index + 1)
-                );
-            };
-
-                        btn.onclick = () => {
-                const val = input.value.trim();
-                if (val !== "") {
-                    // This sends your text to the 'hologramSpeak' and image switcher below
-                    processCommand(val); 
-                    input.value = ""; // Clears the box so you can type again
+                if (searchList.length > 0) {
+                    tryLoad(searchList, 0);
+                    processCommand(val);
+                    input.value = "";
                 } else {
-                    statusEl.innerText = "Type something for Clint to hear...";
+                    processCommand(val);
+                    input.value = "";
                 }
             };
-
 
             renderer.setAnimationLoop(() => {
-                if (renderer.xr.isPresenting) {
-                   // Only show instructions once AR starts
-                   if (statusEl.innerText.includes("START AR")) {
-                       statusEl.innerText = "AR LIVE: Move phone to scan room";
-                   }
-                }
                 renderer.render(scene, camera);
             });
         }
+
+        const tryLoad = (names, index) => {
+            if (index >= names.length) {
+                statusEl.innerText = "Error: File Not Found!";
+                statusEl.style.color = "#ff4444";
+                return;
+            }
+            statusEl.innerText = "Connecting: " + names[index];
+            loader.load(names[index], (tex) => {
+                clintMesh.material.map = tex;
+                clintMesh.visible = true;
+                statusEl.innerText = "Hologram Active";
+                statusEl.style.color = "#00ff00";
+            }, undefined, () => tryLoad(names, index + 1));
+        };
 
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
+
         // --- CLINT'S BRAIN & VOICE ---
-let activeCharacter = 'clint1'; 
+        let activeCharacter = 'clint1'; 
 
-function hologramSpeak(text) {
-    window.speechSynthesis.cancel(); // Stop talking if already speaking
-    const utterance = new SpeechSynthesisUtterance(text);
-    const voices = window.speechSynthesis.getVoices();
-    const preferredVoices = voices.filter(v => v.lang.includes('en-US'));
-    
-    if (activeCharacter === 'clint1') {
-        utterance.pitch = 0.85; // Authoritative 40s
-        utterance.rate = 0.95;
-        utterance.voice = preferredVoices.find(v => v.name.includes('Male')) || preferredVoices[0];
-    } else {
-        utterance.pitch = 1.15; // Playful 30s
-        utterance.rate = 1.10;
-        utterance.voice = preferredVoices.find(v => v.name.includes('2')) || preferredVoices[1];
-    }
-    window.speechSynthesis.speak(utterance);
-}
+        function hologramSpeak(text) {
+            window.speechSynthesis.cancel(); 
+            const utterance = new SpeechSynthesisUtterance(text);
+            const voices = window.speechSynthesis.getVoices();
+            const preferredVoices = voices.filter(v => v.lang.includes('en-US'));
+            
+            if (activeCharacter === 'clint1') {
+                utterance.pitch = 0.85; 
+                utterance.rate = 0.95;
+                utterance.voice = preferredVoices.find(v => v.name.includes('Male')) || preferredVoices[0];
+            } else {
+                utterance.pitch = 1.15; 
+                utterance.rate = 1.10;
+                utterance.voice = preferredVoices.find(v => v.name.includes('2')) || preferredVoices[1];
+            }
+            window.speechSynthesis.speak(utterance);
+        }
 
-function processCommand(text) {
-    const message = text.toLowerCase();
-    if (message.includes("clint 1") || message.includes("founder")) {
-        activeCharacter = 'clint1';
-        tryLoad(['clint1-founder-3.png'], 0);
-        hologramSpeak("Founder mode active. I am ready to oversee the project vision.");
-    } 
-    else if (message.includes("clint 2") || message.includes("engineer")) {
-        activeCharacter = 'clint2';
-        tryLoad(['Clint2-engineer-3.png'], 0);
-        hologramSpeak("Hey! Engineer's in the house. Let's build something crazy... but, you know, let's keep it functional.");
-    } 
-    else if (message.includes("hello") || message.includes("hi")) {
-        hologramSpeak(activeCharacter === 'clint1' ? "Greetings. How may I assist your mission today?" : "Yo! What's up? I'm ready when you are.");
-    } else {
-        hologramSpeak("I heard you say " + text + ". My logic is still updating.");
-    }
-}
-
+        function processCommand(text) {
+            const msg = text.toLowerCase();
+            if (msg.includes("clint 1") || msg.includes("founder")) {
+                activeCharacter = 'clint1';
+                hologramSpeak("Founder mode active. Standing by for project oversight.");
+            } 
+            else if (msg.includes("clint 2") || msg.includes("engineer")) {
+                activeCharacter = 'clint2';
+                hologramSpeak("Yo! Engineer Clint here. Let's get to work on the build.");
+            } 
+            else if (msg.includes("hello") || msg.includes("hi")) {
+                hologramSpeak(activeCharacter === 'clint1' ? "Greetings. How can I assist?" : "What's up! Ready to code?");
+            } else {
+                hologramSpeak("I heard " + text);
+            }
+        }
     </script>
 </body>
 </html>
-
