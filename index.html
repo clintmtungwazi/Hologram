@@ -152,27 +152,17 @@
                 );
             };
 
-            btn.onclick = () => {
-                const val = input.value.toLowerCase().trim();
-                let searchList = [];
-
-                if (val.includes('clint1')) {
-                    searchList = ['clint1-founder-3.png', 'clint1.png'];
-                } else if (val.includes('clint2')) {
-                    // EXACT MATCH for your "engineer" filename
-                    searchList = [
-                        'Clint2-engineer-3.png', 
-                        'clint2-engineer-3.png', 
-                        'clint2-engineer-3.PNG'
-                    ];
-                }
-
-                if (searchList.length > 0) {
-                    tryLoad(searchList, 0);
+                        btn.onclick = () => {
+                const val = input.value.trim();
+                if (val !== "") {
+                    // This sends your text to the 'hologramSpeak' and image switcher below
+                    processCommand(val); 
+                    input.value = ""; // Clears the box so you can type again
                 } else {
-                    statusEl.innerText = "Use 'clint1' or 'clint2'";
+                    statusEl.innerText = "Type something for Clint to hear...";
                 }
             };
+
 
             renderer.setAnimationLoop(() => {
                 if (renderer.xr.isPresenting) {
