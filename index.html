@@ -180,6 +180,46 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
+        // --- CLINT'S BRAIN & VOICE ---
+let activeCharacter = 'clint1'; 
+
+function hologramSpeak(text) {
+    window.speechSynthesis.cancel(); // Stop talking if already speaking
+    const utterance = new SpeechSynthesisUtterance(text);
+    const voices = window.speechSynthesis.getVoices();
+    const preferredVoices = voices.filter(v => v.lang.includes('en-US'));
+    
+    if (activeCharacter === 'clint1') {
+        utterance.pitch = 0.85; // Authoritative 40s
+        utterance.rate = 0.95;
+        utterance.voice = preferredVoices.find(v => v.name.includes('Male')) || preferredVoices[0];
+    } else {
+        utterance.pitch = 1.15; // Playful 30s
+        utterance.rate = 1.10;
+        utterance.voice = preferredVoices.find(v => v.name.includes('2')) || preferredVoices[1];
+    }
+    window.speechSynthesis.speak(utterance);
+}
+
+function processCommand(text) {
+    const message = text.toLowerCase();
+    if (message.includes("clint 1") || message.includes("founder")) {
+        activeCharacter = 'clint1';
+        tryLoad(['clint1-founder-3.png'], 0);
+        hologramSpeak("Founder mode active. I am ready to oversee the project vision.");
+    } 
+    else if (message.includes("clint 2") || message.includes("engineer")) {
+        activeCharacter = 'clint2';
+        tryLoad(['Clint2-engineer-3.png'], 0);
+        hologramSpeak("Hey! Engineer's in the house. Let's build something crazy... but, you know, let's keep it functional.");
+    } 
+    else if (message.includes("hello") || message.includes("hi")) {
+        hologramSpeak(activeCharacter === 'clint1' ? "Greetings. How may I assist your mission today?" : "Yo! What's up? I'm ready when you are.");
+    } else {
+        hologramSpeak("I heard you say " + text + ". My logic is still updating.");
+    }
+}
+
     </script>
 </body>
 </html>
