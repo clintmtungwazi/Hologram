@@ -4,72 +4,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clint AI Hologram - Twin System</title>
+    <title>Clint AI - Twin System</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Courier New', Courier, monospace; }
-        #ARButton {
-            top: 20px !important;
-            bottom: auto !important;
-            background: rgba(0, 255, 242, 0.4) !important;
-            border: 2px solid #00fff2 !important;
-            color: #00fff2 !important;
-        }
-        #ui-layer {
-            position: absolute;
-            bottom: 30px;
-            left: 0;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            z-index: 1000;
-            pointer-events: none;
-        }
-        #status-display {
-            background: rgba(0, 20, 20, 0.85);
-            color: #00fff2;
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-size: 13px;
-            border: 1px solid #00fff2;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .input-group {
-            display: flex;
-            gap: 8px;
-            pointer-events: auto;
-            width: 90%;
-            max-width: 420px;
-        }
-        input {
-            flex: 1;
-            padding: 14px;
-            border-radius: 12px;
-            border: 1px solid #00fff2;
-            background: rgba(0, 0, 0, 0.9);
-            color: #00fff2;
-            outline: none;
-        }
-        button {
-            padding: 14px 24px;
-            border-radius: 12px;
-            border: none;
-            background: #00fff2;
-            color: #000;
-            font-weight: 900;
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(0, 255, 242, 0.5);
-        }
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: sans-serif; }
+        #ARButton { top: 20px !important; bottom: auto !important; background: rgba(0, 255, 242, 0.4) !important; border: 2px solid #00fff2 !important; }
+        #ui-layer { position: absolute; bottom: 30px; left: 0; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 1000; pointer-events: none; }
+        #status-display { background: rgba(0, 0, 0, 0.8); color: #00fff2; padding: 10px 20px; border-radius: 20px; font-size: 14px; border: 1px solid #00fff2; }
+        .input-group { display: flex; gap: 5px; pointer-events: auto; width: 90%; max-width: 400px; }
+        input { flex: 1; padding: 15px; border-radius: 10px; border: 1px solid #00fff2; background: #111; color: white; outline: none; }
+        button { padding: 15px; border-radius: 10px; border: none; background: #00fff2; color: black; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="ui-layer">
-        <div id="status-display">INITIALIZING TWIN SYSTEM...</div>
+        <div id="status-display">SYSTEM ONLINE</div>
         <div class="input-group">
-            <input type="text" id="user-input" placeholder="Call 'Clint 1' or 'Clint 2'...">
+            <input type="text" id="user-input" placeholder="Call Clint 1 or 2...">
             <button id="send-btn">SEND</button>
         </div>
     </div>
@@ -85,11 +36,9 @@
         const input = document.getElementById('user-input');
         const btn = document.getElementById('send-btn');
 
-        // FORCE MALE VOICE ENGINE
+        // VOICE ENGINE
         let voices = [];
-        function loadVoices() {
-            voices = window.speechSynthesis.getVoices();
-        }
+        const loadVoices = () => { voices = window.speechSynthesis.getVoices(); };
         window.speechSynthesis.onvoiceschanged = loadVoices;
         loadVoices();
 
@@ -98,7 +47,6 @@
         function init() {
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
-
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -111,69 +59,53 @@
                 domOverlay: { root: document.getElementById('ui-layer') }
             }));
 
-            // Create initial hologram mesh
-            const geometry = new THREE.PlaneGeometry(0.9, 1.5);
+            const geometry = new THREE.PlaneGeometry(0.8, 1.4);
+            // LOAD INITIAL FOUNDER
             const material = new THREE.MeshBasicMaterial({
                 map: loader.load('clint1-founder-3png_260329_122816.jpg'),
                 transparent: true,
-                side: THREE.DoubleSide,
-                opacity: 0.9
+                side: THREE.DoubleSide
             });
 
             clintMesh = new THREE.Mesh(geometry, material);
-            clintMesh.position.set(0, 0, -1.5);
+            clintMesh.position.set(0, 0, -1.2);
             scene.add(clintMesh);
             scene.add(new THREE.AmbientLight(0xffffff, 2.5));
 
             btn.onclick = () => {
                 const val = input.value.trim();
-                if (val !== "") {
-                    processCommand(val);
-                    input.value = "";
-                }
+                if (val !== "") { processCommand(val); input.value = ""; }
             };
 
-            renderer.setAnimationLoop(() => {
-                renderer.render(scene, camera);
-            });
-
-            statusEl.innerText = "TWINS ONLINE - CALL CLINT 1 OR 2";
+            renderer.setAnimationLoop(() => { renderer.render(scene, camera); });
         }
 
         function tryLoad(path) {
-            statusEl.innerText = "SWITCHING PROJECTION...";
+            statusEl.innerText = "SWITCHING...";
             loader.load(path, (tex) => {
                 clintMesh.material.map = tex;
                 statusEl.innerText = "PROJECTION ACTIVE";
-            }, undefined, (err) => {
-                statusEl.innerText = "LINK ERROR: FILE NOT FOUND";
-                console.error("Load failed:", path);
             });
         }
 
         function hologramSpeak(text) {
             window.speechSynthesis.cancel(); 
             const utterance = new SpeechSynthesisUtterance(text);
-            loadVoices(); 
+            loadVoices(); // Refresh voices on every click
 
-            // Hunt for specific male voices on Android/iPhone
+            // Hunt for Male Voices
             const maleVoices = voices.filter(v => 
                 v.lang.includes('en') && 
-                (v.name.toLowerCase().includes('male') || 
-                 v.name.toLowerCase().includes('david') || 
-                 v.name.toLowerCase().includes('google uk english male') ||
-                 v.name.toLowerCase().includes('guy'))
+                (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('david') || v.name.toLowerCase().includes('guy'))
             );
 
             if (activeCharacter === 'clint1') {
-                // FOUNDER: Deep, slower, authoritative
                 utterance.voice = maleVoices[0] || voices[0];
-                utterance.pitch = 0.65; 
-                utterance.rate = 0.80;
+                utterance.pitch = 0.65; // Deep
+                utterance.rate = 0.85;
             } else {
-                // ENGINEER: Normal pitch, energetic
                 utterance.voice = maleVoices[1] || maleVoices[0] || voices[0];
-                utterance.pitch = 1.15; 
+                utterance.pitch = 1.25; // Higher
                 utterance.rate = 1.05;
             }
             window.speechSynthesis.speak(utterance);
@@ -181,16 +113,17 @@
 
         function processCommand(text) {
             const msg = text.toLowerCase();
-            
             if (msg.includes("clint 1") || msg.includes("founder")) {
                 activeCharacter = 'clint1';
+                // USE EXACT LOOSE FILENAME
                 tryLoad('clint1-founder-3png_260329_122816.jpg');
-                hologramSpeak("Founder Clint active. Standing by for project directives.");
+                hologramSpeak("Founder mode. I am monitoring the project structure.");
             } 
             else if (msg.includes("clint 2") || msg.includes("engineer")) {
                 activeCharacter = 'clint2';
+                // USE EXACT LOOSE FILENAME - NO FOLDERS
                 tryLoad('clint2-engineer-3png_260329_123257_2.jpg');
-                hologramSpeak("Engineer Clint here. Let's build something world-class.");
+                hologramSpeak("Engineer Clint on the scene. Let's build.");
             } 
             else {
                 hologramSpeak(text);
