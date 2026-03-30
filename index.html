@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clint AI - Twin System</title>
+    <title>Clint AI Hologram</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #000; font-family: sans-serif; }
         #ARButton { top: 20px !important; bottom: auto !important; background: rgba(0, 255, 242, 0.4) !important; border: 2px solid #00fff2 !important; }
@@ -36,7 +35,6 @@
         const input = document.getElementById('user-input');
         const btn = document.getElementById('send-btn');
 
-        // VOICE ENGINE
         let voices = [];
         const loadVoices = () => { voices = window.speechSynthesis.getVoices(); };
         window.speechSynthesis.onvoiceschanged = loadVoices;
@@ -60,7 +58,7 @@
             }));
 
             const geometry = new THREE.PlaneGeometry(0.8, 1.4);
-            // LOAD INITIAL FOUNDER
+            // DIRECT LOAD FROM MAIN FOLDER
             const material = new THREE.MeshBasicMaterial({
                 map: loader.load('clint1-founder-3png_260329_122816.jpg'),
                 transparent: true,
@@ -81,7 +79,7 @@
         }
 
         function tryLoad(path) {
-            statusEl.innerText = "SWITCHING...";
+            statusEl.innerText = "SWITCHING PROJECTION...";
             loader.load(path, (tex) => {
                 clintMesh.material.map = tex;
                 statusEl.innerText = "PROJECTION ACTIVE";
@@ -91,9 +89,9 @@
         function hologramSpeak(text) {
             window.speechSynthesis.cancel(); 
             const utterance = new SpeechSynthesisUtterance(text);
-            loadVoices(); // Refresh voices on every click
+            loadVoices(); 
 
-            // Hunt for Male Voices
+            // Find Male Voices
             const maleVoices = voices.filter(v => 
                 v.lang.includes('en') && 
                 (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('david') || v.name.toLowerCase().includes('guy'))
@@ -101,11 +99,11 @@
 
             if (activeCharacter === 'clint1') {
                 utterance.voice = maleVoices[0] || voices[0];
-                utterance.pitch = 0.65; // Deep
+                utterance.pitch = 0.65; 
                 utterance.rate = 0.85;
             } else {
                 utterance.voice = maleVoices[1] || maleVoices[0] || voices[0];
-                utterance.pitch = 1.25; // Higher
+                utterance.pitch = 1.25; 
                 utterance.rate = 1.05;
             }
             window.speechSynthesis.speak(utterance);
@@ -115,15 +113,15 @@
             const msg = text.toLowerCase();
             if (msg.includes("clint 1") || msg.includes("founder")) {
                 activeCharacter = 'clint1';
-                // USE EXACT LOOSE FILENAME
+                // FIXED: REMOVED FOLDER NAME
                 tryLoad('clint1-founder-3png_260329_122816.jpg');
-                hologramSpeak("Founder mode. I am monitoring the project structure.");
+                hologramSpeak("Founder mode active.");
             } 
             else if (msg.includes("clint 2") || msg.includes("engineer")) {
                 activeCharacter = 'clint2';
-                // USE EXACT LOOSE FILENAME - NO FOLDERS
+                // FIXED: REMOVED FOLDER NAME
                 tryLoad('clint2-engineer-3png_260329_123257_2.jpg');
-                hologramSpeak("Engineer Clint on the scene. Let's build.");
+                hologramSpeak("Yo! Engineer Clint here. Ready to build.");
             } 
             else {
                 hologramSpeak(text);
@@ -138,3 +136,4 @@
     </script>
 </body>
 </html>
+
